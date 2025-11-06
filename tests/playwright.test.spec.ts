@@ -103,7 +103,7 @@ test('Handling Checkboxes',async({page})=>{
 
 test('Handling Assertions',async({page})=>{
      await page.goto("http://www.tizag.com/htmlT/htmlcheckboxes.php");
-     await expect(page).toHaveURL("/.*htmlcheckboxes.php/");
+     await expect(page).toHaveURL("http://www.tizag.com/htmlT/htmlcheckboxes.php");
      console.log('URL matched successfully');
      await expect(page).not.toHaveURL(/.*error/);
      console.log('No error on the page hence passed');
