@@ -117,9 +117,24 @@ test('Handling Assertions',async({page})=>{
 
 test('webtable',async({page})=>{
     await page.goto("https://money.rediff.com/indices");
-    const rows = await page.locator('//table[@class="dataTable"]/tbody/tr');
-    console.log('Total no of rows: '+await rows.count());
-    const cols = await page.locator('//table[@class="dataTable"]/tbody/tr[1]/td');
-    console.log('Total no of cols: '+await cols.count());
+    const rowCount = await page.locator('//table[@class="dataTable"]/tbody/tr');
+    console.log('Total no of rows: '+await rowCount.count());
+    const colsCount = await page.locator('//table[@class="dataTable"]/tbody/tr[1]/td');
+    console.log('Total no of cols: '+await colsCount.count());
+    const text = await page.locator("//table[@class='dataTable']/tbody/tr[1]/td[1]");
+    console.log('First cell text: '+await text.innerText());
+    await expect(text).toHaveText('BSE Sensex');
+    const allInnerText = await page.locator('//*[@id="dataTable"]/tbody').allInnerTexts();
+    for(const tableText of allInnerText){
+        console.log(tableText);
+    }
+
+});
+
+test('Handling Alerts',async({page})=>{
+    await page.goto("chrome://downloads/");
+    await page.waitForTimeout(2000);
+    await page.locator('#searchInput').fill('playwright');
+
 
 });
