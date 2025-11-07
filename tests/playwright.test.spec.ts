@@ -108,4 +108,18 @@ test('Handling Assertions',async({page})=>{
      await expect(page).not.toHaveURL(/.*error/);
      console.log('No error on the page hence passed');
 
+     const link = page.locator("//*[@id='menu']/a[19]");
+     await expect(link).toHaveText('HTML - Tags');
+        console.log('Text matched successfully');
+
+
+});
+
+test('webtable',async({page})=>{
+    await page.goto("https://money.rediff.com/indices");
+    const rows = await page.locator('//table[@class="dataTable"]/tbody/tr');
+    console.log('Total no of rows: '+await rows.count());
+    const cols = await page.locator('//table[@class="dataTable"]/tbody/tr[1]/td');
+    console.log('Total no of cols: '+await cols.count());
+
 });
