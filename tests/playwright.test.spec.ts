@@ -138,3 +138,166 @@ test('Handling Alerts',async({page})=>{
 
 
 });
+
+
+test('Mouse Hover Element',async({page})=>{
+    await page.goto("https://www.way2automation.com/");
+    await page.getByRole("link", { name: "All Courses"}).hover();
+    page.on('dialog', dialog => dialog.dismiss());
+    
+    /*await page.locator("locator('.eicon-close')").click();*/
+    /*await page.locator("//a[@href='#'][text()='Resources']").hover();*/
+   /* await page.locator('//*[@id="menu-item-27580"]/a/span[2]').hover();*/
+    await page.getByRole("link", { name: "All Courses"}).hover();
+    
+    await page.getByRole('link', { name: 'Selenium ' }).hover();
+   
+    await page.waitForTimeout(4000);
+
+    await page.getByRole('link', { name: 'Selenium with Java' }).click();
+
+});
+
+
+test('Slide Movement',async({page})=>{
+
+    await page.goto("https://jqueryui.com/slider/");
+    const slider = await page.locator('iframe').contentFrame().locator('span');
+    const boundingBox = await slider.boundingBox();
+    await page.waitForTimeout(2000);
+    if (boundingBox) {
+        const sliderHandleX = boundingBox.x + boundingBox.width / 2;
+        const sliderHandleY = boundingBox.y + boundingBox.height / 2;
+        await page.mouse.move(sliderHandleX, sliderHandleY);
+        await page.mouse.down();
+        await page.mouse.move(sliderHandleX + 400, sliderHandleY);
+        await page.mouse.up();
+    }
+
+    const slider1 = await page.locator('iframe').contentFrame().locator('span');
+    const boundingBox1 = await slider1.boundingBox();
+    await page.waitForTimeout(2000);
+    if (boundingBox1) {
+        const sliderHandleX = boundingBox1.x + boundingBox1.width / 2;
+        const sliderHandleY = boundingBox1.y + boundingBox1.height / 2;
+        await page.mouse.move(sliderHandleX, sliderHandleY);
+        await page.mouse.down();
+        await page.mouse.move(sliderHandleX + -400, sliderHandleY);
+        await page.mouse.up();
+    }
+});
+
+test('Resizeable Element',async({page})=>{
+
+    await page.goto("https://jqueryui.com/resizable/");
+    const resizable = await page.locator('iframe').contentFrame().locator('div').nth(3);
+    const initialBoundingBox = await resizable.boundingBox();
+    console.log(initialBoundingBox);
+    /*await page.waitForTimeout(2000);*/
+    if (initialBoundingBox) {
+        const sliderHandleX = initialBoundingBox.x + initialBoundingBox.width / 2;
+        const sliderHandleY = initialBoundingBox.y + initialBoundingBox.height / 2;
+        await page.mouse.move(sliderHandleX, sliderHandleY);
+        await page.mouse.down();
+        await page.mouse.move(sliderHandleX + 300, sliderHandleY + 200);
+        await page.mouse.up();
+    }
+});
+
+test('Drag And Drop Element',async({page})=>{
+
+    await page.goto("https://jqueryui.com/droppable/");
+    const draggable = await page.locator('iframe').contentFrame().locator('#draggable');
+    const droppable =await page.locator('iframe').contentFrame().locator('#droppable');
+    const draggableBox = await draggable.boundingBox();
+    const droppableBox = await droppable.boundingBox();
+    if (draggableBox && droppableBox) {
+        const dragStartX = draggableBox.x + draggableBox.width / 2;
+        const dragStartY = draggableBox.y + draggableBox.height / 2;
+        const dropX = droppableBox.x + droppableBox.width / 2;
+        const dropY = droppableBox.y + droppableBox.height / 2;
+        await page.mouse.move(dragStartX, dragStartY);
+        await page.mouse.down();
+        await page.mouse.move(dropX, dropY);
+        await page.mouse.up();
+    }
+
+    const draggable1 = await page.locator('iframe').contentFrame().locator('#draggable');
+    const draggableBox1 = await draggable1.boundingBox();
+    const droppableBox1 = await droppable.boundingBox();
+    if (draggableBox1 && droppableBox1) {
+        const dragStartX = draggableBox1.x + draggableBox1.width / 2;
+        const dragStartY = draggableBox1.y + draggableBox1.height / 2;
+        const dropX = droppableBox1.x + droppableBox1.width / 2 + 200;;
+        const dropY = droppableBox1.y + droppableBox1.height / 2 + 200;
+        await page.mouse.move(dragStartX, dragStartY);
+        await page.mouse.down();
+        await page.mouse.move(dropX, dropY);
+        await page.mouse.up();
+    }
+});
+
+
+test('Right Click Element',async({page})=>{
+
+    await page.goto("https://deluxe-menu.com/popup-mode-sample.html");
+    const rightClickElement = await page.locator('p:nth-child(17) > img');
+    await rightClickElement.click({ button: 'right' });
+    const secondOptionrightClick = await page.getByRole('cell', { name: 'Product Info', exact: true }).nth(3);
+    await secondOptionrightClick.click();
+    const alertMessage = page.getByRole('cell', { name: 'Installation' }).nth(3);
+    console.log('Alert message displayed: '+await alertMessage.innerText());
+    /*await expect(alertMessage).toBeVisible();*/
+    await page.waitForTimeout(2000);
+    await alertMessage.click();
+    const setUpText = await page.getByText('How To Setup').innerText();
+    console.log('Setup text displayed: ' + setUpText);
+
+});
+
+test('Handle Alerts',async({page})=>{
+
+    await page.goto("https://mail.rediff.com/cgi-bin/login.cgi");
+
+    page.on('dialog',async dialog => {
+        await page.waitForTimeout(2000);
+        console.log(`Dialog message: ${dialog.message()}`);
+        await dialog.accept();
+    });
+    await page.getByRole('button', { name: 'Log In' }).click();
+
+    await page.waitForTimeout(4000);
+    
+});
+
+
+test('Handling iframe',async ({ page }) => {
+    
+    test.setTimeout(800000)
+    await page.goto("https://www.w3schools.com/html/tryit.asp?filename=tryhtml_form_submit") ;
+    await page.setViewportSize({ width: 1920, height: 1080 });
+    await page.locator('iframe[name="iframeResult"]').contentFrame().getByRole('textbox', { name: 'First name:' }).fill('');
+    await page.locator('iframe[name="iframeResult"]').contentFrame().getByRole('textbox', { name: 'First name:' }).fill('Ruhi');
+    await page.locator('iframe[name="iframeResult"]').contentFrame().getByRole('textbox', { name: 'Last name:' }).fill('');
+    await page.locator('iframe[name="iframeResult"]').contentFrame().getByRole('textbox', { name: 'Last name:' }).fill('Smith');
+    await page.locator('iframe[name="iframeResult"]').contentFrame().getByRole('button', { name: 'Submit' }).click();
+
+    await page.screenshot({ path: 'screenshot/screenshot.png',fullPage:true });
+});
+
+
+test('Handling New Tab',async ({ page }) => {
+    await page.goto("https://www.way2automation.com/way2auto_jquery/automation-practice-site.html");
+   
+   const [newPage] = await Promise.all([
+        page.waitForEvent('popup'),
+         await page.getByRole('link', { name: 'Frames and Windows' }).click()
+       /* await page.locator('iframe[name="iframeResult"]').contentFrame().getByRole('link', { name: 'Visit W3Schools.com!' }).click()*/
+    ]);
+    await newPage.waitForLoadState();
+    console.log('New tab title: '+await newPage.title());
+    console.log('New tab URL: '+await newPage.url());
+    await newPage.locator('#example-1-tab-1 iframe').contentFrame().getByRole('link', { name: 'New Browser Tab' }).click();
+     console.log('New tab title: '+await newPage.title());
+    console.log('New tab URL: '+await newPage.url());
+});
