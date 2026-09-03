@@ -555,13 +555,34 @@ arguments. The resulting pack contains all objects listed in the
 included packs (those not beginning with <code>^</code>), excluding any
 objects listed in the excluded packs (beginning with <code>^</code>).</p>
 <div class="paragraph">
-<p>When <code>mode</code> is "follow", objects from packs not listed on stdin receive
-special treatment. Objects within unlisted packs will be included if
-those objects are (1) reachable from the included packs, and (2) not
-found in any excluded packs. This mode is useful, for example, to
-resurrect once-unreachable objects found in cruft packs to generate
-packs which are closed under reachability up to the boundary set by the
-excluded packs.</p>
+<p>When <code>mode</code> is "follow" packs may additionally be prefixed with !,
+indicating that they are excluded but not necessarily closed under
+reachability.  In addition to objects in included packs, the resulting
+pack may include additional objects based on the following:</p>
+</div>
+<div class="openblock">
+<div class="content">
+<div class="ulist">
+<ul>
+<li>
+<p>If any packs are marked with !, then objects reachable from such
+packs or included ones via objects outside of excluded-closed packs
+will be included. In this case, all <code>^</code> packs are treated as closed
+under reachability.</p>
+</li>
+<li>
+<p>Otherwise (if there are no ! packs), objects within unlisted packs
+will be included if those objects are (1) reachable from the
+included packs, and (2) not found in any excluded packs.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="paragraph">
+<p>This mode is useful, for example, to resurrect once-unreachable
+objects found in cruft packs to generate packs which are closed under
+reachability up to the boundary set by the excluded packs.</p>
 </div>
 <div class="paragraph">
 <p>Incompatible with <code>--revs</code>, or options that imply <code>--revs</code> (such as
@@ -726,7 +747,8 @@ and defaults to -1,  the zlib default,  if neither is set.
 Add --no-reuse-object if you want to force a uniform compression
 level on all data no matter the source.</p>
 </dd>
-<dt class="hdlist1">--[no-]sparse</dt>
+<dt class="hdlist1">--sparse</dt>
+<dt class="hdlist1">--no-sparse</dt>
 <dd>
 <p>Toggle the "sparse" algorithm to determine which objects to include in
 the pack, when combined with the "--revs" option. This algorithm
@@ -897,9 +919,11 @@ potential to improve delta compression especially in the presence
 of filenames that cause collisions in Git&#8217;s default name-hash
 algorithm.</p>
 <div class="paragraph">
-<p>Incompatible with <code>--delta-islands</code>, <code>--shallow</code>, or <code>--filter</code>. The
-<code>--use-bitmap-index</code> option will be ignored in the presence of
-<code>--path-walk.</code></p>
+<p>Incompatible with <code>--delta-islands</code>. The <code>--use-bitmap-index</code> option is
+ignored in the presence of <code>--path-walk</code>. The <code>--path-walk</code> option
+supports the <code>--filter=</code><em>&lt;spec&gt;</em> forms <code>blob:none</code>, <code>blob:limit=</code><em>&lt;n&gt;</em>,
+<code>tree:0</code>, <code>object:type=</code><em>&lt;type&gt;</em>, and <code>sparse:</code><em>&lt;oid&gt;</em>. These supported filter
+types can be combined with the <code>combine:</code><em>&lt;spec&gt;</em><code>+</code><em>&lt;spec&gt;</em> form.</p>
 </div>
 </dd>
 </dl>
@@ -1049,7 +1073,7 @@ attribute <code>delta</code> set to false.</p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2025-10-28 11:27:20 UTC
+Last updated 2026-07-22 12:26:39 UTC
 </div>
 </div>
 </body>

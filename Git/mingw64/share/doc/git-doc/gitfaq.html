@@ -552,6 +552,29 @@ avoid backgrounding the process.</p>
 </dd>
 </dl>
 </div>
+<div id="sign-off" class="dlist">
+<dl>
+<dt class="hdlist1">Why not have <code>commit.signoff</code> and other configuration variables?</dt>
+<dd>
+<p>Git intentionally does not (and will not) provide a
+configuration variable, such as <code>commit.signoff</code>, to
+automatically add <code>--signoff</code> by default.  The reason is to
+protect the legal and intentional significance of a sign-off.
+If there were more automated and widely publicized ways for
+sign-offs to be appended, it would become easier for someone
+to argue later that a "Signed-off-by" trailer was just added
+out of habit or by automation, without the committer&#8217;s full
+awareness or intent to certify their agreement with the
+Developer Certificate of Origin (DCO) or a similar statement.
+This could undermine the sign-off’s credibility in legal or
+contractual situations.</p>
+<div class="paragraph">
+<p>There exists <code>format.signoff</code>, but that is a historical mistake, and
+it is not an excuse to add more mistakes of the same kind on top.</p>
+</div>
+</dd>
+</dl>
+</div>
 </div>
 </div>
 <div class="sect1">
@@ -720,15 +743,32 @@ the other doesn&#8217;t have.  This can result in important objects becoming
 unreferenced and possibly pruned by <code>git</code> <code>gc</code>, causing data loss.</p>
 </div>
 <div class="paragraph">
-<p>Therefore, it&#8217;s better to push your work to either the other system or a central
-server using the normal push and pull mechanism.  However, this doesn&#8217;t always
-preserve important data, like stashes, so some people prefer to share a working
-tree across systems.</p>
+<p>Therefore, it&#8217;s better to push your work to either the other system or a
+central server using the normal push and pull mechanism.  In Git 2.51, Git
+learned to import and export stashes, so it&#8217;s possible to synchronize the state
+of the working tree by stashing it with <code>git</code> <code>stash</code>, then exporting either all
+stashes with <code>git</code> <code>stash</code> <code>export</code> <code>--to-ref</code> <code>refs/heads/stashes</code> (assuming you want
+to export to the <code>stashes</code> branch) or selecting stashes by adding their numbers
+to the end of that command.  It&#8217;s also possible to include untracked files by
+using the <code>--include-untracked</code> argument when stashing the data in the first
+place, but be careful not to do this if any of these contain sensitive
+information.</p>
 </div>
 <div class="paragraph">
-<p>If you do this, the recommended approach is to use <code>rsync</code> <code>-a</code> <code>--delete-after</code>
-(ideally with an encrypted connection such as with <code>ssh</code>) on the root of
-repository.  You should ensure several things when you do this:</p>
+<p>You can then push the <code>stashes</code> branch (or whatever branch you&#8217;ve exported to),
+fetch them to the local system (such as with <code>git</code> <code>fetch</code> <code>origin</code>
+<code>+stashes:stashes</code>), and import the stashes on the other system with <code>git</code> <code>stash</code>
+<code>import</code> <code>stashes</code> (again, changing the name as necessary).  Applying the changes
+to the working tree can be done with <code>git</code> <code>stash</code> <code>pop</code> or <code>git</code> <code>stash</code> <code>apply</code>.
+This is the approach that is most robust and most likely to avoid unintended
+problems.</p>
+</div>
+<div class="paragraph">
+<p>Having said that, there are some cases where people nevertheless prefer to
+share a working tree across systems.  If you do this, the recommended approach
+is to use <code>rsync</code> <code>-a</code> <code>--delete-after</code> (ideally with an encrypted connection such
+as with <code>ssh</code>) on the root of repository.  You should ensure several things
+when you do this:</p>
 </div>
 <div class="ulist">
 <ul>
@@ -746,10 +786,11 @@ quiescent state for the duration of the transfer (that is, no operations of
 any sort are taking place on it, including background operations like <code>git</code>
 <code>gc</code> and operations invoked by your editor).</p>
 <div class="paragraph">
-<p>Be aware that even with these recommendations, syncing in this way has some risk
-since it bypasses Git&#8217;s normal integrity checking for repositories, so having
-backups is advised.  You may also wish to do a <code>git</code> <code>fsck</code> to verify the
-integrity of your data on the destination system after syncing.</p>
+<p>Be aware that even with these recommendations, syncing working trees in this
+way has some risk since it bypasses Git&#8217;s normal integrity checking for
+repositories, so having backups is advised.  You may also wish to do a <code>git</code>
+<code>fsck</code> to verify the integrity of your data on the destination system after
+syncing.</p>
 </div>
 </li>
 </ul>
@@ -1161,7 +1202,7 @@ platform.</p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2025-10-28 11:27:20 UTC
+Last updated 2026-07-22 12:26:39 UTC
 </div>
 </div>
 </body>

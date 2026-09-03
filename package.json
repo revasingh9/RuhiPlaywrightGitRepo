@@ -1,6 +1,7 @@
 {
   "name": "playwright_learning",
   "version": "1.0.0",
+  "type": "module",
   "description": "",
   "main": "index.js",
   "scripts": {},
@@ -9,6 +10,10 @@
   "license": "ISC",
   "devDependencies": {
     "@playwright/test": "^1.56.1",
-    "@types/node": "^24.9.2"
+    "@types/node": "^24.13.3",
+    "dotenv": "^17.4.2"
+  },
+  "dependencies": {
+    "@playwright/cli": "^0.1.15"
   }
 }

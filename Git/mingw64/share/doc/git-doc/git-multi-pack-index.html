@@ -452,7 +452,16 @@ pre>code {
 <h2 id="_synopsis">SYNOPSIS</h2>
 <div class="sectionbody">
 <div class="verseblock">
-<pre class="content"><em>git multi-pack-index</em> [--object-dir=&lt;dir&gt;] [--[no-]bitmap] &lt;sub-command&gt;</pre>
+<pre class="content"><em>git multi-pack-index</em> [&lt;options&gt;] write [--preferred-pack=&lt;pack&gt;]
+                         [--[no-]bitmap] [--[no-]incremental] [--[no-]stdin-packs]
+                         [--refs-snapshot=&lt;path&gt;] [--[no-]write-chain-file]
+                         [--base=&lt;checksum&gt;]
+<em>git multi-pack-index</em> [&lt;options&gt;] compact [--[no-]incremental]
+                         [--[no-]bitmap] [--base=&lt;checksum&gt;] [--[no-]write-chain-file]
+                         &lt;from&gt; &lt;to&gt;
+<em>git multi-pack-index</em> [&lt;options&gt;] verify
+<em>git multi-pack-index</em> [&lt;options&gt;] expire
+<em>git multi-pack-index</em> [&lt;options&gt;] repack [--batch-size=&lt;size&gt;]</pre>
 </div>
 </div>
 </div>
@@ -467,6 +476,9 @@ pre>code {
 <div class="sect1">
 <h2 id="_options">OPTIONS</h2>
 <div class="sectionbody">
+<div class="paragraph">
+<p>The following command-line options are applicable to all sub-commands:</p>
+</div>
 <div class="dlist">
 <dl>
 <dt class="hdlist1">--object-dir=&lt;dir&gt;</dt>
@@ -478,7 +490,8 @@ pre>code {
 <p><em>&lt;dir&gt;</em> must be an alternate of the current repository.</p>
 </div>
 </dd>
-<dt class="hdlist1">--[no-]progress</dt>
+<dt class="hdlist1">--progress</dt>
+<dt class="hdlist1">--no-progress</dt>
 <dd>
 <p>Turn progress on/off explicitly. If neither is specified, progress is
 shown if standard error is connected to a terminal. Supported by
@@ -541,11 +554,68 @@ marker).</p>
 <p>Write an incremental MIDX file containing only objects
 and packs not present in an existing MIDX layer.
 Migrates non-incremental MIDXs to incremental ones when
-necessary. Incompatible with <code>--bitmap</code>.</p>
+necessary.</p>
+</dd>
+<dt class="hdlist1">--[no-]write-chain-file</dt>
+<dd>
+<p>When used with <code>--incremental</code>, write a new MIDX layer
+but do not update the multi-pack-index-chain file.
+The checksum of the new layer is printed to standard
+output, allowing the caller to assemble and write the
+chain itself. Requires <code>--incremental</code>.</p>
+</dd>
+<dt class="hdlist1">--base=&lt;checksum&gt;</dt>
+<dd>
+<p>Specify the checksum of an existing MIDX layer to use
+as the base when writing a new incremental layer.
+The special value <code>none</code> indicates that the new layer
+should have no base (i.e., it becomes a root layer).
+Requires <code>--no-write-chain-file</code>.</p>
 </dd>
 </dl>
 </div>
 </div>
+</div>
+</dd>
+<dt class="hdlist1">compact</dt>
+<dd>
+<p>Write a new MIDX layer containing only objects and packs present
+in the range <em>&lt;from&gt;</em> to <em>&lt;to&gt;</em>, where both arguments are
+checksums of existing layers in the MIDX chain.</p>
+<div class="openblock">
+<div class="content">
+<div class="dlist">
+<dl>
+<dt class="hdlist1">--incremental</dt>
+<dd>
+<p>Write the result to a MIDX chain instead of writing a
+stand-alone MIDX.</p>
+</dd>
+<dt class="hdlist1">--[no-]bitmap</dt>
+<dd>
+<p>Control whether or not a multi-pack bitmap is written.</p>
+</dd>
+<dt class="hdlist1">--[no-]write-chain-file</dt>
+<dd>
+<p>When used with <code>--incremental</code>, write a new compacted
+MIDX layer but do not update the multi-pack-index-chain
+file. The checksum of the new layer is printed to
+standard output. Requires <code>--incremental</code>.</p>
+</dd>
+<dt class="hdlist1">--base=&lt;checksum&gt;</dt>
+<dd>
+<p>Specify the checksum of an existing MIDX layer to use
+as the base for the compacted result, instead of using
+the immediate parent of <em>&lt;from&gt;</em>. The special value
+<code>none</code> indicates that the result should have no base.</p>
+</dd>
+</dl>
+</div>
+</div>
+</div>
+<div class="paragraph">
+<p>Note that the compact command requires writing a version-2 midx that
+cannot be read by versions of Git prior to v2.54.</p>
 </div>
 </dd>
 <dt class="hdlist1">verify</dt>
@@ -673,7 +743,7 @@ multi-pack-index feature and its file format.</p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2025-10-28 11:27:20 UTC
+Last updated 2026-07-22 12:26:39 UTC
 </div>
 </div>
 </body>

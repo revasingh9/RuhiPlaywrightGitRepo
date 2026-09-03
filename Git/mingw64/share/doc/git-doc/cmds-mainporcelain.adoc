@@ -58,6 +58,9 @@ linkgit:git-grep[1]::
 linkgit:git-gui[1]::
 	A portable graphical interface to Git.
 
+linkgit:git-history[1]::
+	EXPERIMENTAL: Rewrite history.
+
 linkgit:git-init[1]::
 	Create an empty Git repository or reinitialize an existing one.
 
@@ -89,7 +92,7 @@ linkgit:git-rebase[1]::
 	Reapply commits on top of another base tip.
 
 linkgit:git-reset[1]::
-	Reset current HEAD to the specified state.
+	Set `HEAD` or the index to a known state.
 
 linkgit:git-restore[1]::
 	Restore working tree files.
@@ -101,7 +104,7 @@ linkgit:git-rm[1]::
 	Remove files from the working tree and from the index.
 
 linkgit:git-shortlog[1]::
-	Summarize 'git log' output.
+	Summarize `git log` output.
 
 linkgit:git-show[1]::
 	Show various types of objects.
@@ -125,7 +128,7 @@ linkgit:git-switch[1]::
 	Switch branches.
 
 linkgit:git-tag[1]::
-	Create, list, delete or verify a tag object signed with GPG.
+	Create, list, delete or verify tags.
 
 linkgit:git-worktree[1]::
 	Manage multiple working trees.

@@ -444,7 +444,7 @@ pre>code {
 <h1>git-hook(1) Manual Page</h1>
 <h2 id="_name">NAME</h2>
 <div class="sectionbody">
-<p>git-hook - Run git hooks</p>
+<p>git-hook - Run Git hooks</p>
 </div>
 </div>
 <div id="content">
@@ -452,7 +452,9 @@ pre>code {
 <h2 id="_synopsis">SYNOPSIS</h2>
 <div class="sectionbody">
 <div class="verseblock">
-<pre class="content"><em>git hook</em> run [--ignore-missing] [--to-stdin=&lt;path&gt;] &lt;hook-name&gt; [-- &lt;hook-args&gt;]</pre>
+<pre class="content"><em>git hook</em> run [--allow-unknown-hook-name] [--ignore-missing] [--to-stdin=&lt;path&gt;] [(-j|--jobs) &lt;n&gt;]
+        &lt;hook-name&gt; [-- &lt;hook-args&gt;]
+<em>git hook</em> list [--allow-unknown-hook-name] [-z] [--show-scope] &lt;hook-name&gt;</pre>
 </div>
 </div>
 </div>
@@ -460,8 +462,117 @@ pre>code {
 <h2 id="_description">DESCRIPTION</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>A command interface for running git hooks (see <a href="githooks.html">githooks(5)</a>),
-for use by other scripted git commands.</p>
+<p>A command interface for running Git hooks (see <a href="githooks.html">githooks(5)</a>),
+for use by other scripted Git commands.</p>
+</div>
+<div class="paragraph">
+<p>This command parses the default configuration files for sets of configs like
+so:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>[hook "linter"]
+  event = pre-commit
+  command = ~/bin/linter --cpp20</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>In this example, [<code>hook</code> "linter"] represents one script - <code>~/bin/linter</code>
+<code>--cpp20</code> - which can be shared by many repos, and even by many hook events, if
+appropriate.</p>
+</div>
+<div class="paragraph">
+<p>To add an unrelated hook which runs on a different event, for example a
+spell-checker for your commit messages, you would write a configuration like so:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>[hook "linter"]
+  event = pre-commit
+  command = ~/bin/linter --cpp20
+[hook "spellcheck"]
+  event = commit-msg
+  command = ~/bin/spellchecker</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>With this config, when you run <em>git commit</em>, first <code>~/bin/linter</code> <code>--cpp20</code> will
+have a chance to check your files to be committed (during the <code>pre-commit</code> hook
+event), and then <code>~/bin/spellchecker</code> will have a chance to check your commit
+message (during the <code>commit-msg</code> hook event).</p>
+</div>
+<div class="paragraph">
+<p>Commands are run in the order Git encounters their associated
+<code>hook.</code><em>&lt;friendly-name&gt;</em><code>.event</code> configs during the configuration parse (see
+<a href="git-config.html">git-config(1)</a>). Although multiple <code>hook.linter.event</code> configs can be
+added, only one <code>hook.linter.command</code> event is valid - Git uses "last-one-wins"
+to determine which command to run.</p>
+</div>
+<div class="paragraph">
+<p>So if you wanted your linter to run when you commit as well as when you push,
+you would configure it like so:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>[hook "linter"]
+  event = pre-commit
+  event = pre-push
+  command = ~/bin/linter --cpp20</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>With this config, <code>~/bin/linter</code> <code>--cpp20</code> would be run by Git before a commit is
+generated (during <code>pre-commit</code>) as well as before a push is performed (during
+<code>pre-push</code>).</p>
+</div>
+<div class="paragraph">
+<p>And if you wanted to run your linter as well as a secret-leak detector during
+only the "pre-commit" hook event, you would configure it instead like so:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>[hook "linter"]
+  event = pre-commit
+  command = ~/bin/linter --cpp20
+[hook "no-leaks"]
+  event = pre-commit
+  command = ~/bin/leak-detector</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>With this config, before a commit is generated (during <code>pre-commit</code>), Git would
+first start <code>~/bin/linter</code> <code>--cpp20</code> and second start <code>~/bin/leak-detector</code>. It
+would evaluate the output of each when deciding whether to proceed with the
+commit.</p>
+</div>
+<div class="paragraph">
+<p>For a full list of hook events which you can set your <code>hook.</code><em>&lt;friendly-name&gt;</em><code>.event</code> to,
+and how hooks are invoked during those events, see <a href="githooks.html">githooks(5)</a>.</p>
+</div>
+<div class="paragraph">
+<p>Git will ignore any <code>hook.</code><em>&lt;friendly-name&gt;</em><code>.event</code> that specifies an event it doesn&#8217;t
+recognize. This is intended so that tools which wrap Git can use the hook
+infrastructure to run their own hooks; see "WRAPPERS" for more guidance.</p>
+</div>
+<div class="paragraph">
+<p>In general, when instructions suggest adding a script to
+.<code>git/hooks/</code><em>&lt;hook-event&gt;</em>, you can specify it in the config instead by running:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>git config set hook.&lt;some-name&gt;.command &lt;path-to-script&gt;
+git config set --append hook.&lt;some-name&gt;.event &lt;hook-event&gt;</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This way you can share the script between multiple repos. That is, <code>cp</code>
+<code>~/my-script.sh</code> <code>~/project/.git/hooks/pre-commit</code> would become:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>git config set hook.my-script.command ~/my-script.sh
+git config set --append hook.my-script.event pre-commit</pre>
+</div>
 </div>
 </div>
 </div>
@@ -472,13 +583,21 @@ for use by other scripted git commands.</p>
 <dl>
 <dt class="hdlist1">run</dt>
 <dd>
-<p>Run the <em>&lt;hook-name&gt;</em> hook. See <a href="githooks.html">githooks(5)</a> for
-supported hook names.</p>
+<p>Runs hooks configured for <em>&lt;hook-name&gt;</em>, in the order they are
+discovered during the config parse. The default <em>&lt;hook-name&gt;</em> from
+the hookdir is run last. See <a href="githooks.html">githooks(5)</a> for supported
+hook names.</p>
 <div class="paragraph">
 <p>Any positional arguments to the hook should be passed after a
 mandatory <code>--</code> (or <code>--end-of-options</code>, see <a href="gitcli.html">gitcli(7)</a>). See
 <a href="githooks.html">githooks(5)</a> for arguments hooks might expect (if any).</p>
 </div>
+</dd>
+<dt class="hdlist1">list [-z] [--show-scope]</dt>
+<dd>
+<p>Print a list of hooks which will be run on <em>&lt;hook-name&gt;</em> event. If no
+hooks are configured for that event, print a warning and return 1.
+Use <code>-z</code> to terminate output lines with NUL instead of newlines.</p>
 </dd>
 </dl>
 </div>
@@ -489,6 +608,14 @@ mandatory <code>--</code> (or <code>--end-of-options</code>, see <a href="gitcli
 <div class="sectionbody">
 <div class="dlist">
 <dl>
+<dt class="hdlist1">--allow-unknown-hook-name</dt>
+<dd>
+<p>By default <code>git</code> <code>hook</code> <code>run</code> and <code>git</code> <code>hook</code> <code>list</code> will bail out when
+<em>&lt;hook-name&gt;</em> is not a hook event known to Git (see <a href="githooks.html">githooks(5)</a>
+for the list of known hooks). This is meant to help catch typos
+such as <code>prereceive</code> when <code>pre-receive</code> was intended. Pass this
+flag to allow unknown hook names.</p>
+</dd>
 <dt class="hdlist1">--to-stdin</dt>
 <dd>
 <p>For "run"; specify a file which will be streamed into the
@@ -500,6 +627,216 @@ beginning to EOF.</p>
 <p>Ignore any missing hook by quietly returning zero. Used for
 tools that want to do a blind one-shot run of a hook that may
 or may not be present.</p>
+</dd>
+<dt class="hdlist1">-z</dt>
+<dd>
+<p>Terminate "list" output lines with NUL instead of newlines.</p>
+</dd>
+<dt class="hdlist1">--show-scope</dt>
+<dd>
+<p>For "list"; prefix each configured hook&#8217;s friendly name with a
+tab-separated config scope (e.g. <code>local</code>, <code>global</code>, <code>system</code>),
+mirroring the output style of <code>git</code> <code>config</code> <code>--show-scope</code>. Traditional
+hooks from the hookdir are unaffected.</p>
+</dd>
+<dt class="hdlist1">-j</dt>
+<dt class="hdlist1">--jobs</dt>
+<dd>
+<p>Only valid for <code>run</code>.</p>
+<div class="paragraph">
+<p>Specify how many hooks to run simultaneously. If this flag is not specified,
+the value of the <code>hook.jobs</code> config is used, see <a href="git-config.html">git-config(1)</a>. If
+neither is specified, defaults to 1 (serial execution).</p>
+</div>
+<div class="paragraph">
+<p>When greater than 1, it overrides the per-hook <code>hook.</code><em>&lt;friendly-name&gt;</em><code>.parallel</code>
+setting, allowing all hooks for the event to run concurrently, even if they
+are not individually marked as parallel.</p>
+</div>
+<div class="paragraph">
+<p>Some hooks always run sequentially regardless of this flag or the
+<code>hook.jobs</code> config, because Git knows they cannot safely run in parallel:
+<code>applypatch-msg</code>, <code>pre-commit</code>, <code>prepare-commit-msg</code>, <code>commit-msg</code>,
+<code>post-commit</code>, <code>post-checkout</code>, and <code>push-to-checkout</code>.</p>
+</div>
+</dd>
+</dl>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_wrappers">WRAPPERS</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><code>git</code> <code>hook</code> <code>run</code> has been designed to make it easy for tools which wrap Git to
+configure and execute hooks using the Git hook infrastructure. It is possible to
+provide arguments and stdin via the command line, as well as specifying parallel
+or series execution if the user has provided multiple hooks.</p>
+</div>
+<div class="paragraph">
+<p>Assuming your wrapper wants to support a hook named "mywrapper-start-tests", you
+can have your users specify their hooks like so:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>[hook "setup-test-dashboard"]
+  event = mywrapper-start-tests
+  command = ~/mywrapper/setup-dashboard.py --tap</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Then, in your <em>mywrapper</em> tool, you can invoke any users' configured hooks by
+running:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>git hook run --allow-unknown-hook-name mywrapper-start-tests \
+  # providing something to stdin
+  --stdin some-tempfile-123 \
+  # execute multiple hooks in parallel
+  --jobs 3 \
+  # plus some arguments of your own...
+  -- \
+  --testname bar \
+  baz</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Take care to name your wrapper&#8217;s hook events in a way which is unlikely to
+overlap with Git&#8217;s native hooks (see <a href="githooks.html">githooks(5)</a>) - a hook event named
+<code>mywrappertool-validate-commit</code> is much less likely to be added to native Git
+than a hook event named <code>validate-commit</code>. If Git begins to use a hook event
+named the same thing as your wrapper hook, it may invoke your users' hooks in
+unintended and unsupported ways.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_configuration">CONFIGURATION</h2>
+<div class="sectionbody">
+<div class="dlist">
+<dl>
+<dt class="hdlist1">hook.&lt;friendly-name&gt;.command</dt>
+<dd>
+<p>The command to execute for <code>hook.</code><em>&lt;friendly-name&gt;</em>. <em>&lt;friendly-name&gt;</em>
+is a unique name that identifies this hook. The hook events that
+trigger the command are configured with <code>hook.</code><em>&lt;friendly-name&gt;</em><code>.event</code>.
+The value can be an executable path or a shell oneliner. If more than
+one value is specified for the same <em>&lt;friendly-name&gt;</em>, only the last
+value parsed is used. </p>
+</dd>
+<dt class="hdlist1">hook.&lt;friendly-name&gt;.event</dt>
+<dd>
+<p>The hook events that trigger <code>hook.</code><em>&lt;friendly-name&gt;</em>. The value is the
+name of a hook event, like "pre-commit" or "update". (See
+<a href="githooks.html">githooks(5)</a> for a complete list of hook events.) On the
+specified event, the associated <code>hook.</code><em>&lt;friendly-name&gt;</em><code>.command</code> is executed.
+This is a multi-valued key. To run <code>hook.</code><em>&lt;friendly-name&gt;</em> on multiple
+events, specify the key more than once. An empty value resets
+the list of events, clearing any previously defined events for
+<code>hook.</code><em>&lt;friendly-name&gt;</em>. </p>
+<div class="paragraph">
+<p>The <em>&lt;friendly-name&gt;</em> must not be the same as a known hook event name
+(e.g. do not use <code>hook.pre-commit.event</code>). Using a known event name as
+a friendly-name is a fatal error because it creates an ambiguity with
+<code>hook.</code><em>&lt;event&gt;</em><code>.enabled</code> and <code>hook.</code><em>&lt;event&gt;</em><code>.jobs</code>. For unknown event names,
+a warning is issued when <em>&lt;friendly-name&gt;</em> matches the event value.</p>
+</div>
+</dd>
+<dt class="hdlist1">hook.&lt;friendly-name&gt;.enabled</dt>
+<dd>
+<p>Whether the hook <code>hook.</code><em>&lt;friendly-name&gt;</em> is enabled. Defaults to <code>true</code>.
+Set to <code>false</code> to disable the hook without removing its
+configuration. This is particularly useful when a hook is defined
+in a system or global config file and needs to be disabled for a
+specific repository. </p>
+</dd>
+<dt class="hdlist1">hook.&lt;friendly-name&gt;.parallel</dt>
+<dd>
+<p>Whether the hook <code>hook.</code><em>&lt;friendly-name&gt;</em> may run in parallel with other hooks
+for the same event. Defaults to <code>false</code>. Set to <code>true</code> only when the
+hook script is safe to run concurrently with other hooks for the same
+event. If any hook for an event does not have this set to <code>true</code>,
+all hooks for that event run sequentially regardless of <code>hook.jobs</code>.
+Only configured (named) hooks need to declare this. Traditional hooks
+found in the hooks directory do not need to, and run in parallel when
+the effective job count is greater than 1. </p>
+</dd>
+<dt class="hdlist1">hook.&lt;event&gt;.enabled</dt>
+<dd>
+<p>Switch to enable or disable all hooks for the <em>&lt;event&gt;</em> hook event.
+When set to <code>false</code>, no hooks fire for that event, regardless of any
+per-hook <code>hook.</code><em>&lt;friendly-name&gt;</em><code>.enabled</code> settings. Defaults to <code>true</code>.
+</p>
+<div class="paragraph">
+<p>Note on naming: <em>&lt;event&gt;</em> must be the event name (e.g. <code>pre-commit</code>),
+not a hook friendly-name. Since using a known event name as a
+friendly-name is disallowed (see <code>hook.</code><em>&lt;friendly-name&gt;</em><code>.event</code> above),
+there is no ambiguity between event-level and per-hook .<code>enabled</code>
+settings for known events. For unknown events, if a friendly-name
+matches the event name despite the warning, .<code>enabled</code> is treated
+as per-hook only.</p>
+</div>
+</dd>
+<dt class="hdlist1">hook.&lt;event&gt;.jobs</dt>
+<dd>
+<p>Specifies how many hooks can be run simultaneously for the <em>&lt;event&gt;</em>
+hook event (e.g. <code>hook.post-receive.jobs</code> <code>=</code> <code>4</code>). Overrides <code>hook.jobs</code>
+for this specific event. The same parallelism restrictions apply: this
+setting has no effect unless all configured hooks for the event have
+<code>hook.</code><em>&lt;friendly-name&gt;</em><code>.parallel</code> set to <code>true</code>. Set to <code>-1</code> to use the
+number of available CPU cores. Must be a positive integer or <code>-1</code>;
+zero is rejected with a warning. </p>
+<div class="paragraph">
+<p>Note on naming: although this key resembles <code>hook.</code><em>&lt;friendly-name&gt;</em><code>.*</code>
+(a per-hook setting), <em>&lt;event&gt;</em> must be the event name, not a hook
+friendly name. The key component is stored literally and looked up by
+event name at runtime with no translation between the two namespaces.
+A key like <code>hook.my-hook.jobs</code> is stored under "my-hook" but the
+lookup at runtime uses the event name (e.g. "post-receive"), so
+<code>hook.my-hook.jobs</code> is silently ignored even when <code>my-hook</code> is
+registered for that event. Use <code>hook.post-receive.jobs</code> or any other
+valid event name when setting <code>hook.</code><em>&lt;event&gt;</em><code>.jobs</code>.</p>
+</div>
+</dd>
+<dt class="hdlist1">hook.jobs</dt>
+<dd>
+<p>Specifies how many hooks can be run simultaneously during parallelized
+hook execution. If unspecified, defaults to 1 (serial execution).
+Set to <code>-1</code> to use the number of available CPU cores.
+Can be overridden on a per-event basis with <code>hook.</code><em>&lt;event&gt;</em><code>.jobs</code>.
+Some hooks always run sequentially regardless of this setting because
+they operate on shared data and cannot safely be parallelized:</p>
+<div class="openblock">
+<div class="content">
+<div class="dlist">
+<dl>
+<dt class="hdlist1"><code>applypatch-msg</code></dt>
+<dt class="hdlist1"><code>prepare-commit-msg</code></dt>
+<dt class="hdlist1"><code>commit-msg</code></dt>
+<dd>
+<p>Receive a commit message file and may rewrite it in place.</p>
+</dd>
+<dt class="hdlist1"><code>pre-commit</code></dt>
+<dt class="hdlist1"><code>post-checkout</code></dt>
+<dt class="hdlist1"><code>push-to-checkout</code></dt>
+<dt class="hdlist1"><code>post-commit</code></dt>
+<dd>
+<p>Access the working tree, index, or repository state.</p>
+</dd>
+</dl>
+</div>
+</div>
+</div>
+<div class="paragraph">
+<p>This setting has no effect unless all configured hooks for the event have
+<code>hook.</code><em>&lt;friendly-name&gt;</em><code>.parallel</code> set to <code>true</code>.</p>
+</div>
+<div class="paragraph">
+<p>For <code>pre-push</code> hooks, which normally keep stdout and stderr separate,
+setting this to a value greater than 1 (or passing <code>-j</code>) will merge stdout
+into stderr to allow correct de-interleaving of parallel output.</p>
+</div>
 </dd>
 </dl>
 </div>
@@ -524,7 +861,7 @@ or may not be present.</p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2025-10-28 11:27:20 UTC
+Last updated 2026-07-22 12:26:39 UTC
 </div>
 </div>
 </body>

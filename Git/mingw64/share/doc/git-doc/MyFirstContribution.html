@@ -508,6 +508,19 @@ can be answered if you disconnect and so that others can learn from the
 conversation.</p>
 </div>
 </div>
+<div class="sect3">
+<h4 id="_discord_on_discord"><a class="anchor" href="#_discord_on_discord"></a><a href="https://discord.gg/GRFVkzgxRd">#discord</a> on Discord</h4>
+<div class="paragraph">
+<p>This is an unofficial Git Discord server for everyone, from people just
+starting out with Git to those who develop it. It&#8217;s a great place to ask
+questions, share tips, and connect with the broader Git community in real time.</p>
+</div>
+<div class="paragraph">
+<p>The server has channels for general discussions and specific channels for those
+who use Git and those who develop it. The server&#8217;s search functionality also
+allows you to find previous conversations and answers to common questions.</p>
+</div>
+</div>
 </div>
 </div>
 </div>
@@ -865,7 +878,8 @@ for you, try <code>cd</code> <code>Documentation/</code> &amp;&amp; <code>..</co
 helpful. So what other context can we get?</p>
 </div>
 <div class="paragraph">
-<p>Add a line to #include "config.<code>h</code>" and #include "repository.<code>h</code>".
+<p>Add a line to #include "config.<code>h</code>", #include "repository.<code>h</code>" and
+#include "environment.<code>h</code>".
 Then, add the following bits to the function body:
 function body:</p>
 </div>
@@ -887,7 +901,7 @@ function body:</p>
 apply standard precedence rules. <code>repo_config_get_string_tmp</code>() will look up
 a specific key ("user.name") and give you the value. There are a number of
 single-key lookup functions like this one; you can see them all (and more info
-about how to use <code>repo_config</code>()) in <code>Documentation/technical/api-config.adoc</code>.</p>
+about how to use <code>repo_config</code>()) in <code>config.h</code>.</p>
 </div>
 <div class="paragraph">
 <p>You should see that the name printed matches the one you see when you run:</p>
@@ -993,7 +1007,8 @@ require a full format object to be passed.</p>
 <div class="listingblock">
 <div class="content">
 <pre>#include "commit.h"
-#include "pretty.h"</pre>
+#include "pretty.h"
+#include "strbuf.h"</pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1078,8 +1093,8 @@ git-psuh - Delight users' typo with a shy horse
 
 SYNOPSIS
 --------
-[verse]
-'git-psuh [&lt;arg&gt;...]'
+[synopsis]
+git psuh [&lt;arg&gt;...]
 
 DESCRIPTION
 -----------
@@ -1371,9 +1386,10 @@ $ prove -j$(nproc) --shuffle t[0-9]*.sh</pre>
 </td>
 <td class="content">
 You can also do this with <code>make</code> <code>test</code> or use any testing harness which can
-speak TAP. <code>prove</code> can run concurrently. <code>shuffle</code> randomizes the order the
-tests are run in, which makes them resilient against unwanted inter-test
-dependencies. <code>prove</code> also makes the output nicer.
+speak TAP. <code>prove</code> can run concurrently. <code>-j$</code>(<code>nproc</code>) runs tests using all
+available CPUs in parallel, but the job count can be adjusted as needed.
+<code>shuffle</code> randomizes the order the tests are run in, which makes them resilient
+against unwanted inter-test dependencies. <code>prove</code> also makes the output nicer.
 </td>
 </tr>
 </table>
@@ -1938,6 +1954,21 @@ now, you can send it to yourself, to make sure you understand how it will look.
 </tr>
 </table>
 </div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+After sending your patches, you can confirm that they reached the mailing
+list by visiting <a href="https://lore.kernel.org/git/" class="bare">https://lore.kernel.org/git/</a>. Use the search bar to find your
+name or the subject of your patch. If it appears, your email was successfully
+delivered.
+</td>
+</tr>
+</table>
+</div>
 <div class="paragraph">
 <p>After you run the command above, you will be presented with an interactive
 prompt for each patch that&#8217;s about to go out. This gives you one last chance to
@@ -2260,7 +2291,7 @@ should generate your diffs from <em>&lt;topic&gt;</em><code>..</code><em>&lt;myb
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2025-10-28 11:27:20 UTC
+Last updated 2026-07-22 12:26:39 UTC
 </div>
 </div>
 </body>

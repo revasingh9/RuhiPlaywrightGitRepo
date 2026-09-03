@@ -51,10 +51,12 @@ git-get-tar-commit-id.exe
 git-grep.exe
 git-hash-object.exe
 git-help.exe
+git-history.exe
 git-hook.exe
 git-index-pack.exe
 git-init-db.exe
 git-interpret-trailers.exe
+git-last-modified.exe
 git-log.exe
 git-ls-files.exe
 git-ls-remote.exe
@@ -94,6 +96,7 @@ git-remote.exe
 git-repack.exe
 git-replace.exe
 git-replay.exe
+git-repo.exe
 git-rerere.exe
 git-reset.exe
 git-rev-list.exe
@@ -119,6 +122,7 @@ git-update-ref.exe
 git-update-server-info.exe
 git-upload-archive.exe
 git-upload-pack.exe
+git-url-parse.exe
 git-var.exe
 git-verify-commit.exe
 git-verify-pack.exe
@@ -128,6 +132,7 @@ git-write-tree.exe
 git-cherry.exe
 git-cherry-pick.exe
 git-format-patch.exe
+git-format-rev.exe
 git-fsck-objects.exe
 git-init.exe
 git-maintenance.exe

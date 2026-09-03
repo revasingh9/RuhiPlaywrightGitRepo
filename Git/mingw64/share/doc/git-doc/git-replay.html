@@ -452,7 +452,8 @@ pre>code {
 <h2 id="_synopsis">SYNOPSIS</h2>
 <div class="sectionbody">
 <div class="verseblock">
-<pre class="content">(EXPERIMENTAL!) <em>git replay</em> ([--contained] --onto &lt;newbase&gt; | --advance &lt;branch&gt;) &lt;revision-range&gt;&#8230;&#8203;</pre>
+<pre class="content">(EXPERIMENTAL!) <em>git replay</em> ([--contained] --onto=&lt;newbase&gt; | --advance=&lt;branch&gt; | --revert=&lt;branch&gt;)
+                             [--ref=&lt;ref&gt;] [--ref-action=&lt;mode&gt;] &lt;revision-range&gt;</pre>
 </div>
 </div>
 </div>
@@ -460,11 +461,12 @@ pre>code {
 <h2 id="_description">DESCRIPTION</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>Takes ranges of commits and replays them onto a new location. Leaves
-the working tree and the index untouched, and updates no references.
-The output of this command is meant to be used as input to
-<code>git</code> <code>update-ref</code> <code>--stdin</code>, which would update the relevant branches
-(see the OUTPUT section below).</p>
+<p>Takes a range of commits and replays them onto a new location. Leaves
+the working tree and the index untouched. By default, updates the
+relevant references using an atomic transaction (all refs update or
+none). Use <code>--ref-action=print</code> to avoid automatic ref updates and
+instead get update commands that can be piped to <code>git</code> <code>update-ref</code> <code>--stdin</code>
+(see the <a href="#output">OUTPUT</a> section below).</p>
 </div>
 <div class="paragraph">
 <p>THIS COMMAND IS EXPERIMENTAL. THE BEHAVIOR MAY CHANGE.</p>
@@ -476,34 +478,97 @@ The output of this command is meant to be used as input to
 <div class="sectionbody">
 <div class="dlist">
 <dl>
-<dt class="hdlist1">--onto &lt;newbase&gt;</dt>
+<dt class="hdlist1">--onto=&lt;newbase&gt;</dt>
 <dd>
 <p>Starting point at which to create the new commits.  May be any
 valid commit, and not just an existing branch name.</p>
 <div class="paragraph">
-<p>When <code>--onto</code> is specified, the update-ref command(s) in the output will
-update the branch(es) in the revision range to point at the new
-commits, similar to the way how <code>git</code> <code>rebase</code> <code>--update-refs</code> updates
-multiple branches in the affected range.</p>
+<p>When <code>--onto</code> is specified, the branch(es) in the revision range will be
+updated to point at the new commits, similar to the way <code>git</code> <code>rebase</code> <code>--update-refs</code>
+updates multiple branches in the affected range.</p>
 </div>
 </dd>
-<dt class="hdlist1">--advance &lt;branch&gt;</dt>
+<dt class="hdlist1">--advance=&lt;branch&gt;</dt>
 <dd>
 <p>Starting point at which to create the new commits; must be a
 branch name.</p>
 <div class="paragraph">
-<p>When <code>--advance</code> is specified, the update-ref command(s) in the output
-will update the branch passed as an argument to <code>--advance</code> to point at
-the new commits (in other words, this mimics a cherry-pick operation).</p>
+<p>The history is replayed on top of the &lt;branch&gt; and &lt;branch&gt; is updated to
+point at the tip of the resulting history. This is different from <code>--onto</code>,
+which uses the target only as a starting point without updating it.</p>
+</div>
+</dd>
+<dt class="hdlist1">--revert=&lt;branch&gt;</dt>
+<dd>
+<p>Starting point at which to create the reverted commits; must be a
+branch name.</p>
+<div class="paragraph">
+<p>When <code>--revert</code> is specified, the commits in the revision range are reverted
+(their changes are undone) and the reverted commits are created on top of
+&lt;branch&gt;. The &lt;branch&gt; is then updated to point at the new commits. This is
+the same as running <code>git</code> <code>revert</code> <em>&lt;revision-range&gt;</em> but does not update the
+working tree.</p>
+</div>
+<div class="paragraph">
+<p>The commit messages follow <code>git</code> <code>revert</code> conventions: they are prefixed with
+"Revert" and include "This reverts commit &lt;hash&gt;." When reverting a commit
+whose message starts with "Revert", the new message uses "Reapply" instead.
+Unlike cherry-pick which preserves the original author, revert commits use
+the current user as the author, matching the behavior of <code>git</code> <code>revert</code>.</p>
+</div>
+<div class="paragraph">
+<p>This option is mutually exclusive with <code>--onto</code> and <code>--advance</code>. It is also
+incompatible with <code>--contained</code> (which is a modifier for <code>--onto</code> only).</p>
+</div>
+</dd>
+<dt class="hdlist1">--contained</dt>
+<dd>
+<p>Update all branches that point at commits in
+&lt;revision-range&gt;. Requires <code>--onto</code>.</p>
+</dd>
+<dt class="hdlist1">--ref=&lt;ref&gt;</dt>
+<dd>
+<p>Override which reference is updated with the result of the replay.
+The ref must be fully qualified.
+When used with <code>--onto</code>, the <em>&lt;revision-range&gt;</em> should have a
+single tip and only the specified reference is updated instead of
+inferring refs from the revision range.
+When used with <code>--advance</code> or <code>--revert</code>, the specified reference is
+updated instead of the branch given to those options.
+This option is incompatible with <code>--contained</code>.</p>
+</dd>
+<dt class="hdlist1">--ref-action[=&lt;mode&gt;]</dt>
+<dd>
+<p>Control how references are updated. The mode can be:</p>
+<div class="openblock">
+<div class="content">
+<div class="ulist">
+<ul>
+<li>
+<p><code>update</code> (default): Update refs directly using an atomic transaction.
+All refs are updated or none are (all-or-nothing behavior).</p>
+</li>
+<li>
+<p><code>print</code>: Output update-ref commands for pipeline use. This is the
+traditional behavior where output can be piped to <code>git</code> <code>update-ref</code> <code>--stdin</code>.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="paragraph">
+<p>The default mode can be configured via the <code>replay.refAction</code> configuration variable.</p>
 </div>
 </dd>
 <dt class="hdlist1">&lt;revision-range&gt;</dt>
 <dd>
-<p>Range of commits to replay. More than one &lt;revision-range&gt; can
-be passed, but in <code>--advance</code> <em>&lt;branch&gt;</em> mode, they should have
-a single tip, so that it&#8217;s clear where &lt;branch&gt; should point
-to. See "Specifying Ranges" in <a href="git-rev-parse.html">git-rev-parse(1)</a> and the
-"Commit Limiting" options below.</p>
+<p>Range of commits to replay; see "Specifying Ranges" in
+<a href="git-rev-parse.html">git-rev-parse(1)</a>. In <code>--advance=</code><em>&lt;branch&gt;</em> or
+<code>--revert=</code><em>&lt;branch&gt;</em> mode, the range should have a single tip,
+so that it&#8217;s clear to which tip the advanced or reverted
+&lt;branch&gt; should point. Any commits in the range whose changes
+are already present in the branch the commits are being
+replayed onto will be dropped.</p>
 </dd>
 </dl>
 </div>
@@ -530,7 +595,11 @@ ordering and formatting options, such as <code>--reverse</code>.</p>
 <dt class="hdlist1"><code>-n</code> <em>&lt;number&gt;</em></dt>
 <dt class="hdlist1"><code>--max-count=</code><em>&lt;number&gt;</em></dt>
 <dd>
-<p>Limit the output to <em>&lt;number&gt;</em> commits.</p>
+<p>Limit the output to the first <em>&lt;number&gt;</em> commits that would be shown.</p>
+</dd>
+<dt class="hdlist1"><code>--max-count-oldest=</code><em>&lt;number&gt;</em></dt>
+<dd>
+<p>Limit the output to the last <em>&lt;number&gt;</em> commits that would be shown.</p>
 </dd>
 <dt class="hdlist1"><code>--skip=</code><em>&lt;number&gt;</em></dt>
 <dd>
@@ -539,7 +608,8 @@ ordering and formatting options, such as <code>--reverse</code>.</p>
 <dt class="hdlist1"><code>--since=</code><em>&lt;date&gt;</em></dt>
 <dt class="hdlist1"><code>--after=</code><em>&lt;date&gt;</em></dt>
 <dd>
-<p>Show commits more recent than <em>&lt;date&gt;</em>.</p>
+<p>Show commits more recent than <em>&lt;date&gt;</em>.  As a special case,
+<em>today</em> means the last midnight.</p>
 </dd>
 <dt class="hdlist1"><code>--since-as-filter=</code><em>&lt;date&gt;</em></dt>
 <dd>
@@ -671,6 +741,11 @@ the first parent commit upon seeing a merge commit.
 This can be used to find the set of changes in a topic branch
 from the point where it diverged from the remote branch, given
 that arbitrary merges can be valid topic branch changes.</p>
+</dd>
+<dt class="hdlist1"><code>--maximal-only</code></dt>
+<dd>
+<p>Restrict the output commits to be those that are not reachable
+from any other commits in the revision range.</p>
 </dd>
 <dt class="hdlist1"><code>--not</code></dt>
 <dd>
@@ -1523,307 +1598,18 @@ Cannot be combined with <code>--graph</code>.</p>
 </dl>
 </div>
 </div>
-<div class="sect2">
-<h3 id="_commit_formatting">Commit Formatting</h3>
-<div class="dlist">
-<dl>
-<dt class="hdlist1"><code>--pretty</code>[<code>=</code><em>&lt;format&gt;</em>]</dt>
-<dt class="hdlist1"><code>--format=</code><em>&lt;format&gt;</em></dt>
-<dd>
-<p>Pretty-print the contents of the commit logs in a given format,
-where <em>&lt;format&gt;</em> can be one of <code>oneline</code>, <code>short</code>, <code>medium</code>,
-<code>full</code>, <code>fuller</code>, <code>reference</code>, <code>email</code>, <code>raw</code>, <code>format:</code><em>&lt;string&gt;</em>
-and <code>tformat:</code><em>&lt;string&gt;</em>.  When <em>&lt;format&gt;</em> is none of the above,
-and has <code>%</code><em>&lt;placeholder&gt;</em> in it, it acts as if
-<code>--pretty=tformat:</code><em>&lt;format&gt;</em> were given.</p>
-<div class="paragraph">
-<p>See the "PRETTY FORMATS" section for some additional details for each
-format.  When <code>=</code><em>&lt;format&gt;</em> part is omitted, it defaults to <code>medium</code>.</p>
-</div>
-<div class="admonitionblock note">
-<table>
-<tr>
-<td class="icon">
-<div class="title">Note</div>
-</td>
-<td class="content">
-you can specify the default pretty format in the repository
-configuration (see <a href="git-config.html">git-config(1)</a>).
-</td>
-</tr>
-</table>
-</div>
-</dd>
-<dt class="hdlist1"><code>--abbrev-commit</code></dt>
-<dd>
-<p>Instead of showing the full 40-byte hexadecimal commit object
-name, show a prefix that names the object uniquely.
-<code>--abbrev=</code><em>&lt;n&gt;</em> (which also modifies diff output, if it is displayed)
-option can be used to specify the minimum length of the prefix.</p>
-<div class="paragraph">
-<p>This should make <code>--pretty=oneline</code> a whole lot more readable for
-people using 80-column terminals.</p>
-</div>
-</dd>
-<dt class="hdlist1"><code>--no-abbrev-commit</code></dt>
-<dd>
-<p>Show the full 40-byte hexadecimal commit object name. This negates
-<code>--abbrev-commit</code>, either explicit or implied by other options such
-as <code>--oneline</code>. It also overrides the <code>log.abbrevCommit</code> variable.</p>
-</dd>
-<dt class="hdlist1"><code>--oneline</code></dt>
-<dd>
-<p>This is a shorthand for <code>--pretty=oneline</code> <code>--abbrev-commit</code>
-used together.</p>
-</dd>
-<dt class="hdlist1"><code>--encoding=</code><em>&lt;encoding&gt;</em></dt>
-<dd>
-<p>Commit objects record the character encoding used for the log message
-in their encoding header; this option can be used to tell the
-command to re-code the commit log message in the encoding
-preferred by the user.  For non plumbing commands this
-defaults to UTF-8. Note that if an object claims to be encoded
-in <code>X</code> and we are outputting in <code>X</code>, we will output the object
-verbatim; this means that invalid sequences in the original
-commit may be copied to the output. Likewise, if iconv(3) fails
-to convert the commit, we will quietly output the original
-object verbatim.</p>
-</dd>
-<dt class="hdlist1"><code>--expand-tabs=</code><em>&lt;n&gt;</em></dt>
-<dt class="hdlist1"><code>--expand-tabs</code></dt>
-<dt class="hdlist1"><code>--no-expand-tabs</code></dt>
-<dd>
-<p>Perform a tab expansion (replace each tab with enough spaces
-to fill to the next display column that is a multiple of <em>&lt;n&gt;</em>)
-in the log message before showing it in the output.
-<code>--expand-tabs</code> is a short-hand for <code>--expand-tabs=8</code>, and
-<code>--no-expand-tabs</code> is a short-hand for <code>--expand-tabs=0</code>,
-which disables tab expansion.</p>
-<div class="paragraph">
-<p>By default, tabs are expanded in pretty formats that indent the log
-message by 4 spaces (i.e.  <code>medium</code>, which is the default, <code>full</code>,
-and <code>fuller</code>).</p>
-</div>
-</dd>
-<dt class="hdlist1"><code>--notes</code>[<code>=</code><em>&lt;ref&gt;</em>]</dt>
-<dd>
-<p>Show the notes (see <a href="git-notes.html">git-notes(1)</a>) that annotate the
-commit, when showing the commit log message.  This is the default
-for <code>git</code> <code>log</code>, <code>git</code> <code>show</code> and <code>git</code> <code>whatchanged</code> commands when
-there is no <code>--pretty</code>, <code>--format</code>, or <code>--oneline</code> option given
-on the command line.</p>
-<div class="paragraph">
-<p>By default, the notes shown are from the notes refs listed in the
-<code>core.notesRef</code> and <code>notes.displayRef</code> variables (or corresponding
-environment overrides). See <a href="git-config.html">git-config(1)</a> for more details.</p>
-</div>
-<div class="paragraph">
-<p>With an optional <em>&lt;ref&gt;</em> argument, use the ref to find the notes
-to display.  The ref can specify the full refname when it begins
-with <code>refs/notes/</code>; when it begins with <code>notes/</code>, <code>refs/</code> and otherwise
-<code>refs/notes/</code> is prefixed to form the full name of the ref.</p>
-</div>
-<div class="paragraph">
-<p>Multiple <code>--notes</code> options can be combined to control which notes are
-being displayed. Examples: "<code>--notes=foo</code>" will show only notes from
-<code>refs/notes/foo</code>; "<code>--notes=foo</code> <code>--notes</code>" will show both notes from
-"refs/notes/foo" and from the default notes ref(s).</p>
-</div>
-</dd>
-<dt class="hdlist1"><code>--no-notes</code></dt>
-<dd>
-<p>Do not show notes. This negates the above <code>--notes</code> option, by
-resetting the list of notes refs from which notes are shown.
-Options are parsed in the order given on the command line, so e.g.
-"<code>--notes</code> <code>--notes=foo</code> <code>--no-notes</code> <code>--notes=bar</code>" will only show notes
-from <code>refs/notes/bar</code>.</p>
-</dd>
-<dt class="hdlist1"><code>--show-notes-by-default</code></dt>
-<dd>
-<p>Show the default notes unless options for displaying specific
-notes are given.</p>
-</dd>
-<dt class="hdlist1"><code>--show-notes</code>[<code>=</code><em>&lt;ref&gt;</em>]</dt>
-<dt class="hdlist1"><code>--standard-notes</code></dt>
-<dt class="hdlist1"><code>--no-standard-notes</code></dt>
-<dd>
-<p>These options are deprecated. Use the above <code>--notes</code>/<code>--no-notes</code>
-options instead.</p>
-</dd>
-<dt class="hdlist1"><code>--show-signature</code></dt>
-<dd>
-<p>Check the validity of a signed commit object by passing the signature
-to <code>gpg</code> <code>--verify</code> and show the output.</p>
-</dd>
-<dt class="hdlist1"><code>--relative-date</code></dt>
-<dd>
-<p>Synonym for <code>--date=relative</code>.</p>
-</dd>
-<dt class="hdlist1"><code>--date=</code><em>&lt;format&gt;</em></dt>
-<dd>
-<p>Only takes effect for dates shown in human-readable format, such
-as when using <code>--pretty</code>. <code>log.date</code> config variable sets a default
-value for the log command&#8217;s <code>--date</code> option. By default, dates
-are shown in the original time zone (either committer&#8217;s or
-author&#8217;s). If <code>-local</code> is appended to the format (e.g.,
-<code>iso-local</code>), the user&#8217;s local time zone is used instead.</p>
-<div class="openblock">
-<div class="content">
-<div class="paragraph">
-<p><code>--date=relative</code> shows dates relative to the current time,
-e.g. &#8220;2 hours ago&#8221;. The <code>-local</code> option has no effect for
-<code>--date=relative</code>.</p>
-</div>
-<div class="paragraph">
-<p><code>--date=local</code> is an alias for <code>--date=default-local</code>.</p>
-</div>
-<div class="paragraph">
-<p><code>--date=iso</code> (or <code>--date=iso8601</code>) shows timestamps in a ISO 8601-like format.
-The differences to the strict ISO 8601 format are:</p>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p>a space instead of the <code>T</code> date/time delimiter</p>
-</li>
-<li>
-<p>a space between time and time zone</p>
-</li>
-<li>
-<p>no colon between hours and minutes of the time zone</p>
-</li>
-</ul>
-</div>
-<div class="paragraph">
-<p><code>--date=iso-strict</code> (or <code>--date=iso8601-strict</code>) shows timestamps in strict
-ISO 8601 format.</p>
-</div>
-<div class="paragraph">
-<p><code>--date=rfc</code> (or <code>--date=rfc2822</code>) shows timestamps in RFC 2822
-format, often found in email messages.</p>
-</div>
-<div class="paragraph">
-<p><code>--date=short</code> shows only the date, but not the time, in <code>YYYY-MM-DD</code> format.</p>
-</div>
-<div class="paragraph">
-<p><code>--date=raw</code> shows the date as seconds since the epoch (1970-01-01
-00:00:00 UTC), followed by a space, and then the timezone as an offset
-from UTC (a <code>+</code> or <code>-</code> with four digits; the first two are hours, and
-the second two are minutes). I.e., as if the timestamp were formatted
-with <code>strftime</code>("%s <code>%z</code>")).
-Note that the <code>-local</code> option does not affect the seconds-since-epoch
-value (which is always measured in UTC), but does switch the accompanying
-timezone value.</p>
-</div>
-<div class="paragraph">
-<p><code>--date=human</code> shows the timezone if the timezone does not match the
-current time-zone, and doesn&#8217;t print the whole date if that matches
-(ie skip printing year for dates that are "this year", but also skip
-the whole date itself if it&#8217;s in the last few days and we can just say
-what weekday it was).  For older dates the hour and minute is also
-omitted.</p>
-</div>
-<div class="paragraph">
-<p><code>--date=unix</code> shows the date as a Unix epoch timestamp (seconds since
-1970).  As with <code>--raw</code>, this is always in UTC and therefore <code>-local</code>
-has no effect.</p>
-</div>
-<div class="paragraph">
-<p><code>--date=format:</code><em>&lt;format&gt;</em> feeds the <em>&lt;format&gt;</em> to your system <code>strftime</code>,
-except for <code>%s</code>, <code>%z</code>, and <code>%Z</code>, which are handled internally.
-Use <code>--date=format:%c</code> to show the date in your system locale&#8217;s
-preferred format.  See the <code>strftime</code>(3) manual for a complete list of
-format placeholders. When using <code>-local</code>, the correct syntax is
-<code>--date=format-local:</code><em>&lt;format&gt;</em>.</p>
-</div>
-<div class="paragraph">
-<p><code>--date=default</code> is the default format, and is based on ctime(3)
-output.  It shows a single line with three-letter day of the week,
-three-letter month, day-of-month, hour-minute-seconds in "HH:MM:SS"
-format, followed by 4-digit year, plus timezone information, unless
-the local time zone is used, e.g. <code>Thu</code> <code>Jan</code> <code>1</code> <code>00:00:00</code> <code>1970</code> <code>+0000</code>.</p>
-</div>
-</div>
-</div>
-</dd>
-<dt class="hdlist1"><code>--parents</code></dt>
-<dd>
-<p>Print also the parents of the commit (in the form "commit parent&#8230;&#8203;").
-Also enables parent rewriting, see <em>History Simplification</em> above.</p>
-</dd>
-<dt class="hdlist1"><code>--children</code></dt>
-<dd>
-<p>Print also the children of the commit (in the form "commit child&#8230;&#8203;").
-Also enables parent rewriting, see <em>History Simplification</em> above.</p>
-</dd>
-<dt class="hdlist1"><code>--left-right</code></dt>
-<dd>
-<p>Mark which side of a symmetric difference a commit is reachable from.
-Commits from the left side are prefixed with &lt; and those from
-the right with &gt;.  If combined with <code>--boundary</code>, those
-commits are prefixed with <code>-</code>.</p>
-<div class="paragraph">
-<p>For example, if you have this topology:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre>             y---b---b  branch B
-            / \ /
-           /   .
-          /   / \
-         o---x---a---a  branch A</pre>
-</div>
-</div>
-<div class="paragraph">
-<p>you would get an output like this:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre>        $ git rev-list --left-right --boundary --pretty=oneline A...B
-
-        &gt;bbbbbbb... 3rd on b
-        &gt;bbbbbbb... 2nd on b
-        &lt;aaaaaaa... 3rd on a
-        &lt;aaaaaaa... 2nd on a
-        -yyyyyyy... 1st on b
-        -xxxxxxx... 1st on a</pre>
-</div>
-</div>
-</dd>
-<dt class="hdlist1"><code>--graph</code></dt>
-<dd>
-<p>Draw a text-based graphical representation of the commit history
-on the left hand side of the output.  This may cause extra lines
-to be printed in between commits, in order for the graph history
-to be drawn properly.
-Cannot be combined with <code>--no-walk</code>.</p>
-<div class="paragraph">
-<p>This enables parent rewriting, see <em>History Simplification</em> above.</p>
-</div>
-<div class="paragraph">
-<p>This implies the <code>--topo-order</code> option by default, but the
-<code>--date-order</code> option may also be specified.</p>
-</div>
-</dd>
-<dt class="hdlist1"><code>--show-linear-break</code>[<code>=</code><em>&lt;barrier&gt;</em>]</dt>
-<dd>
-<p>When <code>--graph</code> is not used, all history branches are flattened
-which can make it hard to see that the two consecutive commits
-do not belong to a linear branch. This option puts a barrier
-in between them in that case. If <em>&lt;barrier&gt;</em> is specified, it
-is the string that will be shown instead of the default one.</p>
-</dd>
-</dl>
-</div>
-</div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_output">OUTPUT</h2>
+<h2 id="output">OUTPUT</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>When there are no conflicts, the output of this command is usable as
-input to <code>git</code> <code>update-ref</code> <code>--stdin</code>.  It is of the form:</p>
+<p>By default, or with <code>--ref-action=update</code>, this command produces no output on
+success, as refs are updated directly using an atomic transaction.</p>
+</div>
+<div class="paragraph">
+<p>When using <code>--ref-action=print</code>, the output is usable as input to
+<code>git</code> <code>update-ref</code> <code>--stdin</code>. It is of the form:</p>
 </div>
 <div class="literalblock">
 <div class="content">
@@ -1834,14 +1620,19 @@ update refs/heads/branch3 ${NEW_branch3_HASH} ${OLD_branch3_HASH}</pre>
 </div>
 <div class="paragraph">
 <p>where the number of refs updated depends on the arguments passed and
-the shape of the history being replayed.  When using <code>--advance</code>, the
-number of refs updated is always one, but for <code>--onto</code>, it can be one
-or more (rebasing multiple branches simultaneously is supported).</p>
+the shape of the history being replayed.  When using <code>--advance</code> or
+<code>--revert</code>, the number of refs updated is always one, but for <code>--onto</code>,
+it can be one or more (rebasing multiple branches simultaneously is
+supported).</p>
+</div>
+<div class="paragraph">
+<p>There is no stderr output on conflicts; see the <a href="#exit-status">EXIT
+STATUS</a> section below.</p>
 </div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_exit_status">EXIT STATUS</h2>
+<h2 id="exit-status">EXIT STATUS</h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>For a successful, non-conflicted replay, the exit status is 0.  When
@@ -1859,7 +1650,18 @@ is something other than 0 or 1.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre>$ git replay --onto target origin/main..mybranch
+<pre>$ git replay --onto=target origin/main..mybranch</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The refs are updated atomically and no output is produced on success.</p>
+</div>
+<div class="paragraph">
+<p>To see what would be updated without actually updating:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>$ git replay --ref-action=print --onto=target origin/main..mybranch
 update refs/heads/mybranch ${NEW_mybranch_HASH} ${OLD_mybranch_HASH}</pre>
 </div>
 </div>
@@ -1868,15 +1670,14 @@ update refs/heads/mybranch ${NEW_mybranch_HASH} ${OLD_mybranch_HASH}</pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre>$ git replay --advance target origin/main..mybranch
-update refs/heads/target ${NEW_target_HASH} ${OLD_target_HASH}</pre>
+<pre>$ git replay --advance=target origin/main..mybranch</pre>
 </div>
 </div>
 <div class="paragraph">
 <p>Note that the first two examples replay the exact same commits and on
 top of the exact same new base, they only differ in that the first
-provides instructions to make mybranch point at the new commits and
-the second provides instructions to make target point at them.</p>
+updates mybranch to point at the new commits and the second updates
+target to point at them.</p>
 </div>
 <div class="paragraph">
 <p>What if you have a stack of branches, one depending upon another, and
@@ -1884,11 +1685,12 @@ you&#8217;d really like to rebase the whole set?</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre>$ git replay --contained --onto origin/main origin/main..tipbranch
-update refs/heads/branch1 ${NEW_branch1_HASH} ${OLD_branch1_HASH}
-update refs/heads/branch2 ${NEW_branch2_HASH} ${OLD_branch2_HASH}
-update refs/heads/tipbranch ${NEW_tipbranch_HASH} ${OLD_tipbranch_HASH}</pre>
+<pre>$ git replay --contained --onto=origin/main origin/main..tipbranch</pre>
 </div>
+</div>
+<div class="paragraph">
+<p>All three branches (<code>branch1</code>, <code>branch2</code>, and <code>tipbranch</code>) are updated
+atomically.</p>
 </div>
 <div class="paragraph">
 <p>When calling <code>git</code> <code>replay</code>, one does not need to specify a range of
@@ -1897,10 +1699,7 @@ do:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre>$ git replay --onto origin/main ^base branch1 branch2 branch3
-update refs/heads/branch1 ${NEW_branch1_HASH} ${OLD_branch1_HASH}
-update refs/heads/branch2 ${NEW_branch2_HASH} ${OLD_branch2_HASH}
-update refs/heads/branch3 ${NEW_branch3_HASH} ${OLD_branch3_HASH}</pre>
+<pre>$ git replay --onto=origin/main ^base branch1 branch2 branch3</pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1908,6 +1707,47 @@ update refs/heads/branch3 ${NEW_branch3_HASH} ${OLD_branch3_HASH}</pre>
 all commits they have since <code>base</code>, playing them on top of
 <code>origin/main</code>. These three branches may have commits on top of <code>base</code>
 that they have in common, but that does not need to be the case.</p>
+</div>
+<div class="paragraph">
+<p>To revert commits on a branch:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>$ git replay --revert=main topic~2..topic</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This reverts the last two commits from <code>topic</code>, creating revert commits on
+top of <code>main</code>, and updates <code>main</code> to point at the result. This is useful when
+commits from <code>topic</code> were previously merged or cherry-picked into <code>main</code> and
+need to be undone.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+For reverting an entire merge request as a single commit (rather than
+commit-by-commit), consider using <code>git</code> <code>merge-tree</code> <code>--merge-base</code> <code>$TIP</code> <code>HEAD</code> <code>$BASE</code>
+which can avoid unnecessary merge conflicts.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>To replay onto a specific commit while updating a different reference:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>$ git replay --onto=112233 --ref=refs/heads/mybranch aabbcc..ddeeff</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This replays the range <code>aabbcc</code><code>..</code><code>ddeeff</code> onto commit <code>112233</code> and updates
+<code>refs/heads/mybranch</code> to point at the result. This can be useful when you want
+to use bare commit IDs instead of branch names.</p>
 </div>
 </div>
 </div>
@@ -1922,7 +1762,7 @@ that they have in common, but that does not need to be the case.</p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2025-10-28 11:27:20 UTC
+Last updated 2026-07-22 12:26:39 UTC
 </div>
 </div>
 </body>

@@ -527,16 +527,18 @@ without data loss.</p>
 <dt class="hdlist1"><code>--ref-format=</code><em>&lt;format&gt;</em></dt>
 <dd>
 <p>Specify the given ref storage <em>&lt;format&gt;</em> for the repository. The valid values are:</p>
-<div class="ulist">
-<ul>
-<li>
-<p><code>files</code> for loose files with packed-refs. This is the default.</p>
-</li>
-<li>
-<p><code>reftable</code> for the reftable format. This format is experimental and its
-internals are subject to change.</p>
-</li>
-</ul>
+<div class="dlist">
+<dl>
+<dt class="hdlist1"><code>files</code></dt>
+<dd>
+<p>for loose files with packed-refs.
+This is the default.</p>
+</dd>
+<dt class="hdlist1"><code>reftable</code></dt>
+<dd>
+<p>for the reftable format.</p>
+</dd>
+</dl>
 </div>
 </dd>
 <dt class="hdlist1"><code>--template=</code><em>&lt;template-directory&gt;</em></dt>
@@ -558,9 +560,10 @@ repository.</p>
 <dt class="hdlist1"><code>--initial-branch=</code><em>&lt;branch-name&gt;</em></dt>
 <dd>
 <p>Use <em>&lt;branch-name&gt;</em> for the initial branch in the newly created
-repository.  If not specified, fall back to the default name (currently
-<code>master</code>, but this is subject to change in the future; the name can be
-customized via the <code>init.defaultBranch</code> configuration variable).</p>
+repository.  If not specified, fall back to the default name
+(currently <code>master</code>, but this will change to <code>main</code> when Git 3.0 is released).
+The default name can be customized via the <code>init.defaultBranch</code> configuration
+variable.</p>
 </dd>
 <dt class="hdlist1"><code>--shared</code>[<code>=</code>(<code>false</code>|<code>true</code>|<code>umask</code>|<code>group</code>|<code>all</code>|<code>world</code>|<code>everybody</code>|<em>&lt;perm&gt;</em>)]</dt>
 <dd>
@@ -734,6 +737,13 @@ See <code>--ref-format=</code> in <a href="git-init.html">git-init(1)</a>. Both 
 option and the <code>GIT_DEFAULT_REF_FORMAT</code> environment variable take
 precedence over this config.</p>
 </dd>
+<dt class="hdlist1">init.defaultSubmodulePathConfig</dt>
+<dd>
+<p>A boolean that specifies if <code>git</code> <code>init</code> and <code>git</code> <code>clone</code> should
+automatically set <code>extensions.submodulePathConfig</code> to <code>true</code>. This
+allows all new repositories to automatically use the submodule path
+extension. Defaults to <code>false</code> when unset.</p>
+</dd>
 </dl>
 </div>
 </div>
@@ -749,7 +759,7 @@ precedence over this config.</p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2025-10-28 11:27:20 UTC
+Last updated 2026-07-22 12:26:39 UTC
 </div>
 </div>
 </body>
