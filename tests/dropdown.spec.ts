@@ -1,4 +1,5 @@
 import{test,expect} from '@playwright/test'
+import { text } from 'stream/consumers';
 
 test('Dropdown Test',async ({page}) => {
 
@@ -47,7 +48,7 @@ await page.locator('.ui-datepicker-trigger').nth(1).click()
 
 })
 
-test.only('Dropdown Test2',async ({page}) => {
+test('Dropdown Test2',async ({page}) => {
  await page.goto('https://the-internet.herokuapp.com/dropdown')
 const clickDropdown = page.locator('#dropdown')
 //await clickDropdown.click()
@@ -65,4 +66,24 @@ await page.getByRole('button', { name: 'Click for JS Alert' }).click()
 
 await page.getByRole('button', { name: 'Click for JS Confirm' }).click()
 
+})
+
+test.only('Selecting Dropdown using select', async({page})=>{
+   await page.goto('https://playground.bondaracademy.com/pages/forms/layouts')
+  const clickATDropdown = page.locator('.select-button')
+  await clickATDropdown.click()
+  await page.waitForSelector('nb-option-list')
+ await page.locator('nb-option', { hasText: 'Corporate' }).click();
+//    const listOptionItemnonaray= await page.locator('nb-option-list')
+//  //await listOptionItemnonaray.first().waitFor()
+//   //  const listOptionItem = String(listOptionItemnonaray).split('')
+//   //   console.log(listOptionItem)
+//   const count = await listOptionItemnonaray.count()
+//     for(let i=0; i<count; i++){
+//       const text = await listOptionItemnonaray.nth(i).textContent()
+//     if(text?.trim() === ' Corporate') {
+//       await listOptionItemnonaray.nth(i).click()
+//       break;
+//    }
+//   }
 })

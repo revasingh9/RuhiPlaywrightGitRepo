@@ -1,6 +1,6 @@
 var missingNumberInArray = function (num){
     let lowerLimit = Math.min(...num)
-    let maxLimit = Math.min(...num)
+    let maxLimit = Math.max (...num)
     let totalSum = ''
     let actualSum =0
 
@@ -19,12 +19,14 @@ actualSum += currentNum
 
    
 }
-console.log(missingNumberInArray([1, 2, 4, 5, 6]))
+console.log(missingNumberInArray([6,9,10,17,25,30]))
 
 
 var missingNumberInArray = function (num) {
-  let lowerLimit = Math.min(...num);
-  let maxLimit = Math.max(...num);
+
+  if (!num || num.length === 0) return [];
+  let lowerLimit = Math.min(...num)-1;
+  let maxLimit = Math.max(...num)+1;
   let numSet = new Set(num);
   let missingNumbers = [];
 
@@ -38,4 +40,4 @@ var missingNumberInArray = function (num) {
   return missingNumbers;
 };
 
-console.log(missingNumberInArray([1, 2, 5, 6])); // Output: [3, 4]
+console.log(missingNumberInArray([6,9,10,17,25,30])); // Output: [3, 4]

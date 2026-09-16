@@ -1,5 +1,7 @@
 import { test } from  '../utils/fixture.js'
 import { expect } from "@playwright/test";
+import { APILogger } from '../utils/logger.js';
+import { config } from '../api-test.config.js';
 
 
 let authToken: string
@@ -7,7 +9,7 @@ let authToken: string
 test.beforeAll('Get Token',async({api})=>{
    const tokenResponse = await api
      .path('/users/login')  
-     .body({"user":{"email":"revasingh9@yahoo.in","password":"Mall##ika30"}})   
+     .body({"user":{"email":config.userEmail,"password":config.userPassword}})   
      .postRequest(200) 
    authToken = `Token ${tokenResponse.user.token}`
   
@@ -37,6 +39,13 @@ test('Get Test tags', async ({ api }) => {
          expect(response.tags.length).toBeLessThanOrEqual(10)
             
 
+})
+test('logger',()=>{
+     const logger = new APILogger()
+     logger.logRequest('GET','https://test.com/api',{Authorization: 'token'},{foo:'bar'})
+     logger.logResponse(200,{foo:'bar'})
+     const logs = logger.getRecentLogs()
+     console.log(logs)
 })
 
 test('Create and Delete Article',async ({api}) =>{
@@ -111,7 +120,7 @@ test('Create and Delete Article',async ({api}) =>{
            .headers({Authorization : authToken})
            .params({limit:10, offset:0 })
            .getRequest(200)
-      expect(articleResponseTwo.articles[0].title).not.toEqual(updatedUniqueTitle)
+      expect(articleResponseTwo.articles[0].title).not.toEqual(updatedUniqueTitle )
 
 
  })

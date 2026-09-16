@@ -30,11 +30,21 @@ export class DashboardPage{
          //await this.page.waitForTimeout(5000)
          return collectedAllProuctName
     }
-    async addProductToCart(productName:string[]): Promise<void>{
-        for (const name of productName){
-        const productCard = this.page.locator('.card-body', { hasText: name })
+    async addProductToCart(productNames:string[]): Promise<void>{
+        await this.getAllProductName.first().waitFor()
+         const collectedAllProuctName =  await this.getAllProductName.allTextContents()
+            console.log(collectedAllProuctName)
+        for (const name of productNames){
+            // for (let i=0;i< collectedAllProuctName.length;i++)
+            //     if (name===collectedAllProuctName[i]) {
+            //         clickText= collectedAllProuctName[i]
+                     let  productCard = this.page.locator('.card-body').filter({ hasText: name })
+                      await productCard.getByRole("button",{ name: 'Add To Cart'}).click()  
+               // }
 
-        await productCard.getByRole("button",{ name: 'Add To Cart'}).click()
+  //      let  productCard = this.page.locator('.card-body', { hasText: name })
+
+    //    await productCard.getByRole("button",{ name: 'Add To Cart'}).click()
         await this.page.waitForTimeout(6000)
        // await this.page.locator('#toast-container').waitFor({ state: 'hidden' });
 

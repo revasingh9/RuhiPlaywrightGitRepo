@@ -37,9 +37,13 @@ test('End To End Complete Flow test', async ({ page }) => {
      console.log('Order Ids:', orderIds)
     expect(orderIds.length).toBeGreaterThan(0);
     await orderHistoryPage.clickAtOrderHistoryPagelink()
-     const orderIdatMyorderpage = await myOrderPage.getallOrderIdsFromtable()
+     const orderIdatMyorderpage : string[] = await myOrderPage.getallOrderIdsFromtable()
      console.log('OrderIdatMyorderpage:', orderIdatMyorderpage)
     const readIdByProductname= await myOrderPage.getOrderIdByProductName(productNameData.shoppingItemList)
     console.log(readIdByProductname)
+    for (const [productName, orderId] of Object.entries(readIdByProductname)) {
+        await expect(orderIdatMyorderpage).toContain(orderId)
+        console.log(productName, orderId);
+}
     
 })
