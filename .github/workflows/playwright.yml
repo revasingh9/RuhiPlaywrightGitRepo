@@ -22,6 +22,10 @@ jobs:
     - name: Run Playwright tests on Azure Service
       env:
         PLAYWRIGHT_SERVICE_URL: ${{ vars.PLAYWRIGHT_SERVICE_URL }}
+        PLAYWRIGHT_SERVICE_ACCESS_TOKEN: ${{ secrets.PLAYWRIGHT_SERVICE_ACCESS_TOKEN }}
+        CI: true
+        DEBUG: pw:browser*
+        run: npx playwright test --config=playwright.service.config.ts --workers=4 --reporter=line,html
        
       run:  npx playwright test --config=playwright.service.config.ts --workers=4
     - uses: actions/upload-artifact@v4
