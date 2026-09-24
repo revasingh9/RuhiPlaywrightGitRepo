@@ -1,4 +1,11 @@
-import { test, expect } from '@playwright/test';
+import { test, expect,firefox } from '@playwright/test';
+import path from "path"
+import  fs  from 'fs';
+import { fileURLToPath } from 'url'
+
+
+ const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
 
 test('has title', async ({ page }) => {
   await page.goto('https://playwright.dev/');
@@ -65,6 +72,8 @@ test('Exercise to select radio Button', async ({ page }) => {
   await page.getByRole('link', { name: 'Dialog' }).click()
   await page.getByRole('button', { name: 'Open Dialog with component' }).click()
   await page.getByRole('button',{name :'Dismiss Dialog'}).click()
+
+    await page.getByRole('button', { name: 'Open Dialog with template' }).screenshot({path:'screenshot/Dialogbox.png'})
   await page.getByRole('button', { name: 'Open Dialog with template' }).click()
   await page.getByRole('button',{name: "OK"}).click()
   await page.getByRole('button',{ name: 'Open with delay 3 seconds' }).click()
@@ -73,7 +82,107 @@ test('Exercise to select radio Button', async ({ page }) => {
   expect(page.getByRole('button',{name: "OK"})).toBeVisible()
   await page.getByRole('button',{name: "OK"}).click()
 
+  await page.getByRole('button',{name:"Enter Name"}).click()
+  expect(page.getByText('Reminder, name should start with capital case!')).toContainText('Reminder, name should start with capital case!')
+  expect(page.getByText('Reminder, name should start with capital case!')).toBeVisible()
+  await page.screenshot({path:'screenshot/iframePage.png'})
+  await page.getByRole('button',{name:"OK"}).click()
+  await page.getByRole('textbox',{name:"Name"}).fill('Ruhi Kumari')
+  await page.getByRole('button',{name :"Submit"}).click()
+  
+
+  const frameLocator = page.frameLocator('[data-cy="esc-close-iframe"]')
+  await frameLocator.getByRole('button',{name:"Open Dialog with esc close"}).click()
+
+// await frameLocator.locator("li a[href*='lifetime-access']:visible") - This is to identify visible locator
 
 
 
+})
+
+
+test('Find No Of Link on facebook homepage', async({page})=>{
+
+  await page.goto('https://www.facebook.com/')
+  const getAllLink = await page.getByRole('link')
+  const countNoOfLink = await getAllLink.count()
+  console.log(' Count No Of Link:', countNoOfLink)
+
+
+const fireFoxBrowser = await firefox.launch()
+  const fireFoxContext = await fireFoxBrowser.newContext()
+  const fireFoxPage = await fireFoxContext.newPage()
+  await fireFoxPage.goto('https://www.amazon.com/')
+  await fireFoxPage.pause()
+   await fireFoxPage.getByText('Kindle Books').waitFor()
+
+    await fireFoxPage.getByText('Kindle Books').screenshot({path:'screenshot/kindlebooks.png'})
+  await fireFoxPage.getByText('Kindle Books').click()
+  
+})  
+
+test('Practicing Different Alert', async({page})=>{
+
+  await page.goto('https://the-internet.herokuapp.com/javascript_alerts')
+
+ // page.on('dialog', dialog => dialog.accept());
+
+  page.once('dialog',async dialog => {
+    expect(dialog.type()).toBe('alert')
+    expect(dialog.message()).toBe('I am a JS Alert')
+    await dialog.accept()
+
+  })
+
+  await page.getByRole("button",{name:"Click for JS Alert"}).click()
+  await expect(page.locator('#result')).toHaveText('You successfully clicked an alert')
+
+  page.once('dialog',async dialog =>{
+    expect(dialog.type()).toBe("confirm")
+    await dialog.dismiss()
+  })
+
+
+  await page.getByRole('button',{name:"Click for JS Confirm"}).click()
+  await expect(page.locator('#result')).toHaveText('You clicked: Cancel')
+
+  await page.once('dialog',async dialog=>{
+    expect(dialog.type()).toBe('prompt')
+    await dialog.accept('Playwright')
+  })
+ await page.getByRole("button",{name:'Click for JS Prompt'}).click()
+ expect(page.locator('#result')).toHaveText('You entered: Playwright')
+
+ await page.goto('https://the-internet.herokuapp.com/upload')
+ const dirname = "C:/Users/singh/OneDrive/Desktop"
+
+ const filePath = path.join(dirname,'test_upload.txt');
+ fs.writeFileSync(filePath,"Hello from playwright! Example File" )
+
+await page.locator('#file-upload').setInputFiles(filePath)
+await page.getByRole('button',{name:"Upload"}).click()
+expect(page.locator('h3')).toHaveText('File Uploaded!')
+await expect(page.locator('#uploaded-files')).toContainText('test_upload.txt')
+ //Clenup
+ fs.unlinkSync(filePath)
+
+ 
+ 
+})
+
+test('Practicing download',async({page},testInfo )=>{
+
+  
+ await page.goto('https://playground.bondaracademy.com/pages/extra-components/pdf-download')
+  const downloadPromise = page.waitForEvent('download')
+  await page.getByRole('button',{name:" Download PDF "}).click()
+  const download = await downloadPromise
+  //Wait for download process
+
+  const suggstedFileName =  download.suggestedFilename()
+
+  //save the download file to path
+  const downloadPath = testInfo.outputPath(suggstedFileName)
+  await download.saveAs(downloadPath)
+  expect(fs.existsSync(downloadPath)).toBeTruthy()
 })

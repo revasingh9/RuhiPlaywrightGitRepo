@@ -27,22 +27,48 @@ console.log(reversedWord('Hello'))
 
 //Reverse a word in two pointer
 
-var reversedWord1 = function(str2){
+// var reversedWord1 = function(str2){
 
-    const convertLowerCase1 = String(str2).toLowerCase()
-    const toArrayChar1 = convertLowerCase1.split('')
+//     const convertLowerCase1 = String(str2).toLowerCase()
+//     const toArrayChar1 = convertLowerCase1.split('')
     
-    let left = 0;
-    let right = toArrayChar1.length-1
+//     let left = 0;
+//     let right = toArrayChar1.length-1
 
+
+//     while(left < right){
+//         let temp = toArrayChar1[left]
+//         toArrayChar1[left] = toArrayChar1[right]
+//         toArrayChar1[right] = temp
+//      left++;
+//      right--
+//     }
+//     return toArrayChar1.join('')
+// }
+// console.log(`ReversedWord1, ${reversedWord1('Hello')}`)
+
+var reverseAString = function (str){
+        
+    const splittedChar = String(str).toLowerCase().split('')
+    let left = 0
+    let right = str.length-1
 
     while(left < right){
-        let temp = toArrayChar1[left]
-        toArrayChar1[left] = toArrayChar1[right]
-        toArrayChar1[right] = temp
-     left++;
-     right--
+        
+        let temp = splittedChar[left]
+        splittedChar[left] = splittedChar[right]
+        splittedChar[right] = temp
+        left ++
+        right--
     }
-    return toArrayChar1.join('')
+    
+     return splittedChar.join('')
 }
-console.log(`ReversedWord1, ${reversedWord1('Hello')}`)
+
+
+ 
+console.log('Reverse A String:- ', reverseAString("Hello"))
+
+
+
+
